@@ -29,10 +29,9 @@ public class Downloader {
     static final String model16URL = "https://raw.githubusercontent.com/woheller69/whoBIRD-TFlite/master/BirdNET_GLOBAL_6K_V2.4_Model_FP16.tflite";
     static final String model32URL = "https://raw.githubusercontent.com/woheller69/whoBIRD-TFlite/master/BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite";
     static final String metaModelURL = "https://raw.githubusercontent.com/woheller69/whoBIRD-TFlite/master/BirdNET_GLOBAL_6K_V2.4_MData_Model_V2_FP16.tflite";
-    static final String model16MD5 = "b1c981fe261910b473b9b7eec9ebcd4e";
-    static final String model32MD5 = "6c7c42106e56550fc8563adb31bc120e";
-    static final String metaModelMD5 ="c12c2baafe4d1bb098e65291bfcb2f8c";
-    static final String metaModelV1MD5 ="f1a078ae0f244a1ff5a8f1ccb645c805";
+    static final String model16MD5 = "5c64ba3ffab264ccbfafe784896392051a86be63b0cc507e7683db7df114546b";
+    static final String model32MD5 = "55f3e4055b1a13bfa9a2452731d0d34f6a02d6b775a334362665892794165e4c";
+    static final String metaModelMD5 ="1226f23fc20362617deb09178f366111b70cf085c2c82893f2814e5acedce6c2";
     static long model16Size = 25932528;
     static final long model32Size = 51726412;
     static final long metaModelSize = 14770468;
@@ -45,13 +44,13 @@ public class Downloader {
     public static boolean checkModels(final Activity activity) {
         File modelFile = new File(activity.getDir("filesdir", Context.MODE_PRIVATE) + "/" + modelFILE);
         File metaModelFile = new File(activity.getDir("filesdir", Context.MODE_PRIVATE) + "/" + metaModelFILE);
-        String calcModelMD5 = "";
-        String calcMetaModelMD5 = "";
+        String calcModelSHA256 = "";
+        String calcMetaModelSHA256 = "";
         if (modelFile.exists()) {
             try {
                 byte[] data = Files.readAllBytes(Paths.get(modelFile.getPath()));
-                byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-                calcModelMD5 = new BigInteger(1, hash).toString(16);
+                byte[] hash = MessageDigest.getInstance("SHA-256").digest(data);
+                calcModelSHA256 = new BigInteger(1, hash).toString(16);
             } catch (IOException | NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
@@ -59,17 +58,17 @@ public class Downloader {
         if (metaModelFile.exists()) {
             try {
                 byte[] data = Files.readAllBytes(Paths.get(metaModelFile.getPath()));
-                byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-                calcMetaModelMD5 = new BigInteger(1, hash).toString(16);
+                byte[] hash = MessageDigest.getInstance("SHA-256").digest(data);
+                calcMetaModelSHA256 = new BigInteger(1, hash).toString(16);
             } catch (IOException | NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        if (modelFile.exists() && !(calcModelMD5.equals(model16MD5) || calcModelMD5.equals(model32MD5))){modelFile.delete(); downloadModelFinished = false;}
-        if (metaModelFile.exists() && (!calcMetaModelMD5.equals(metaModelMD5) && !calcMetaModelMD5.equals(metaModelV1MD5))) {metaModelFile.delete();downloadMetaModelFinished = false;}
+        if (modelFile.exists() && !(calcModelSHA256.equals(model16MD5) || calcModelSHA256.equals(model32MD5))){modelFile.delete(); downloadModelFinished = false;}
+        if (metaModelFile.exists() && !calcMetaModelSHA256.equals(metaModelMD5)) {metaModelFile.delete();downloadMetaModelFinished = false;}
 
-        return (calcModelMD5.equals(model16MD5) || calcModelMD5.equals(model32MD5)) && (calcMetaModelMD5.equals(metaModelMD5) || calcMetaModelMD5.equals(metaModelV1MD5));
+        return (calcModelSHA256.equals(model16MD5) || calcModelSHA256.equals(model32MD5)) && calcMetaModelSHA256.equals(metaModelMD5);
     }
 
     public static void downloadModels(final Activity activity, ActivityDownloadBinding binding) {
@@ -116,16 +115,16 @@ public class Downloader {
                     outStream.close();
                     inStream.close();
 
-                    String calcModelMD5="";
+                    String calcModelSHA256="";
                     if (modelFile.exists()) {
                         byte[] data = Files.readAllBytes(Paths.get(modelFile.getPath()));
-                        byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-                        calcModelMD5 = new BigInteger(1, hash).toString(16);
+                        byte[] hash = MessageDigest.getInstance("SHA-256").digest(data);
+                        calcModelSHA256 = new BigInteger(1, hash).toString(16);
                     } else {
                         throw new IOException();  //throw exception if there is no modelFile at this point
                     }
 
-                    if (!(calcModelMD5.equals(model16MD5) || calcModelMD5.equals(model32MD5) )){
+                    if (!(calcModelSHA256.equals(model16MD5) || calcModelSHA256.equals(model32MD5) )){
                         modelFile.delete();
                         downloadModelFinished = false;
                         activity.runOnUiThread(() -> {
@@ -185,16 +184,16 @@ public class Downloader {
                     outStream.close();
                     inStream.close();
 
-                    String calcMetaModelMD5="";
+                    String calcMetaModelSHA256="";
                     if (metaModelFile.exists()) {
                         byte[] data = Files.readAllBytes(Paths.get(metaModelFile.getPath()));
-                        byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-                        calcMetaModelMD5 = new BigInteger(1, hash).toString(16);
+                        byte[] hash = MessageDigest.getInstance("SHA-256").digest(data);
+                        calcMetaModelSHA256 = new BigInteger(1, hash).toString(16);
                     } else {
                         throw new IOException();  //throw exception if there is no modelFile at this point
                     }
 
-                    if (!calcMetaModelMD5.equals(metaModelMD5)){
+                    if (!calcMetaModelSHA256.equals(metaModelMD5)){
                         metaModelFile.delete();
                         downloadMetaModelFinished = false;
                         activity.runOnUiThread(() -> {
